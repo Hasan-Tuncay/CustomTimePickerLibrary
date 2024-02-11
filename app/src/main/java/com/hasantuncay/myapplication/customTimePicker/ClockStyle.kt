@@ -5,13 +5,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 data class ClockColors(
-    var clockFace: Color = Color.White,
-    var centerPointColor: Color = Color.Gray,
-    var hourHandsColor: Color = Color.Blue,
-    var minuteHandColor: Color = Color.Yellow,
-    var handPointDotColor: Color = Color.Blue,
-    var clockNumberColor: Color=Color.Gray,
-    var handPointCircleColor: Color = Color(red = 0f, green = 0f, blue = 0f, alpha = 0.5f)
+    var clockFaceColor: Color= clockFace,
+    var centerPointColor: Color =centerPointcircColor ,
+    var hourHandsColor: Color = hourHandLineColor,
+    var minuteHandColor: Color = minuteHandLineColor,
+    var handPointDotColor: Color = hourHandPointerDotColor,
+    var clockNumberColor: Color=clockNumbColor,
+    var handPointCircleColor: Color = hourHandPointerCircleColor
 )
 
 data class ClockShapes(

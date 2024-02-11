@@ -52,6 +52,7 @@ fun Clock(clockStyle: ClockStyle = ClockStyle()) {
     val density = LocalDensity.current
     val fontFamilyResolver = LocalFontFamilyResolver.current
     val layoutDirection = LocalLayoutDirection.current
+    val innerMargin=20
     Canvas(modifier = Modifier.fillMaxSize()) {
 
 
@@ -61,7 +62,7 @@ fun Clock(clockStyle: ClockStyle = ClockStyle()) {
 
 
             drawCircle(center.x, center.y, radius, Paint().apply {
-                color = clockStyle.colors.clockFace.toArgb()
+                color = clockStyle.colors.clockFaceColor.toArgb()
                 style = Paint.Style.FILL
 
                 setShadowLayer(
@@ -98,10 +99,10 @@ fun Clock(clockStyle: ClockStyle = ClockStyle()) {
                 val textHeight = bounds.height()
 
                 val textX =
-                    (radius * cos(angleToRadyan) + center.x) - textWidth * cos(angleToRadyan)
+                    ((radius-innerMargin) * cos(angleToRadyan) + center.x) - textWidth * cos(angleToRadyan)
 
                 val textY =
-                    (radius * sin(angleToRadyan) + center.y) - textHeight * sin(angleToRadyan) + textHeight / 2
+                    ((radius-innerMargin) * sin(angleToRadyan) + center.y) - textHeight * sin(angleToRadyan) + textHeight / 2
                 Log.d("Clock", "Clock: cos(angleInRad${cos(angleToRadyan)}")
                 drawContext.canvas.nativeCanvas.drawText(text, textX, textY, paint)
             }
@@ -139,14 +140,16 @@ fun Clock(clockStyle: ClockStyle = ClockStyle()) {
         drawCircle(
             color = clockStyle.colors.centerPointColor,
             clockStyle.shapes.centerPointRadius.toPx(),
-            center = Offset( center.x,  center.y)
+            center = Offset(center.x, center.y)
         )
-        // HourHand
-        // HourHand
-        val angleToRadyan = ( -90f) * (PI / 180f).toFloat()
-        val endOffset =Offset(
-            x = (radius-75) * cos(angleToRadyan)+center.x, // radius'ten 20 birim çıkar
-            y = (radius-75) * sin(angleToRadyan)+center.y  // radius'ten 20 birim çıkar
+
+
+//HourHand
+
+        val angleToRadyan = (-90f) * (PI / 180f).toFloat()
+        val endOffset = Offset(
+            x = ( (radius-innerMargin)  - clockStyle.shapes.handPointCircleRadius.toPx()) * cos(angleToRadyan) + center.x, // radius'ten 20 birim çıkar
+            y = ( (radius-innerMargin)  - clockStyle.shapes.handPointCircleRadius.toPx()) * sin(angleToRadyan) + center.y  // radius'ten 20 birim çıkar
         )
         drawLine(
             color = clockStyle.colors.hourHandsColor,
@@ -156,7 +159,19 @@ fun Clock(clockStyle: ClockStyle = ClockStyle()) {
         )
 
 
+//SmallHandDotpointer
+        val radiusPointer=clockStyle.shapes.handPointDotRadius.toPx()
+            val centerPointer = Offset(
+        x = ( (radius-innerMargin) - clockStyle.shapes.handPointCircleRadius.toPx()) * cos(angleToRadyan) + center.x, // radius'ten 20 birim çıkar
+        y = ((radius-innerMargin) - clockStyle.shapes.handPointCircleRadius.toPx()) * sin(angleToRadyan) + center.y  // radius'ten 20 birim çıkar
+    )
+        drawCircle(color=clockStyle.colors.handPointDotColor,center=centerPointer, radius = radiusPointer)
 
+
+//LArgeHandDotpointer
+
+
+       drawCircle(color=clockStyle.colors.handPointCircleColor,center=centerPointer, radius = clockStyle.shapes.handPointCircleRadius.toPx())
     }
 
 }
