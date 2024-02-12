@@ -11,14 +11,22 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+
+
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
@@ -29,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.graphicsLayer
 
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
@@ -47,22 +56,69 @@ import kotlin.math.sin
 fun TimePicker(clockStyle: ClockStyle = ClockStyle()){
     Column (
         Modifier
-             .padding(horizontal = 50.dp).background(color = androidx.compose.ui.graphics.Color.LightGray).border(0.5.dp, color = clockStyle.header.headeUnselectedColor),
+            .wrapContentHeight()
+            .padding(horizontal = 50.dp)
+            .background(color = androidx.compose.ui.graphics.Color.LightGray)
+            .border(0.5.dp, color = clockStyle.header.headeUnselectedColor),
         horizontalAlignment = Alignment.CenterHorizontally,
-verticalArrangement = Arrangement.Center
+verticalArrangement = Arrangement.SpaceEvenly
     ){
         Row(
             Modifier
                 .fillMaxWidth()
-                .height(84.dp).background(clockStyle.header.headerBackgroundColor)) {
+
+                .height(84.dp)
+                .background(clockStyle.header.headerBackgroundColor)) {
 
         }
 
-Clock(clockStyle=clockStyle)
+
+        Box(modifier = Modifier.height(290.dp)) { // Box'un ekranı doldurmasını sağlayacak şekilde genişletilmesi
+            Clock(modifier = Modifier.align(Alignment.Center), clockStyle = clockStyle) // Clock widget'ını merkeze alın
+Row (modifier = Modifier
+    .align(Alignment.BottomCenter)
+    .fillMaxWidth().graphicsLayer {
+        // Y ekseni çevirisi ile Row'u yukarı kaydır
+     translationY = +15.dp.toPx()
+    },
+    verticalAlignment = Alignment.Bottom,
+    horizontalArrangement = Arrangement.SpaceBetween){
+    // Sol alt köşedeki yuvarlak buton
+    Button(
+        onClick = { /* Buton tıklama işlevi */ },
+        modifier = Modifier
+            // Butonu sol alt köşeye konumlandır
+            .padding(16.dp) // Kenarlardan biraz boşluk bırak
+            .size(50.dp), // Butonun boyutunu ayarla
+        shape = CircleShape, // Yuvarlak şekil
+        contentPadding = PaddingValues(0.dp) // İçerik için padding'i sıfırla, tam yuvarlaklık için
+    ) {
+        // Buton içeriği, örneğin bir ikon ekleyebilirsiniz
+    }
+
+    // Sağ alt köşedeki yuvarlak buton
+    Button(
+        onClick = { /* Buton tıklama işlevi */ },
+        modifier = Modifier
+            // Butonu sağ alt köşeye konumlandır
+            .padding(16.dp) // Kenarlardan biraz boşluk bırak
+            .size(50.dp), // Butonun boyutunu ayarla
+        shape = CircleShape, // Yuvarlak şekil
+        contentPadding = PaddingValues(0.dp) // İçerik için padding'i sıfırla, tam yuvarlaklık için
+    ) {
+        // Buton içeriği, örneğin bir ikon ekleyebilirsiniz
+    }
+}
+
+        }
+
+
+
         Row(
             Modifier
                 .fillMaxWidth()
-                .height(84.dp).background(color = androidx.compose.ui.graphics.Color.Blue)) {
+                .height(84.dp)
+                .background(color = androidx.compose.ui.graphics.Color.Blue)) {
 
         }
     }
@@ -70,7 +126,7 @@ Clock(clockStyle=clockStyle)
 
 @OptIn(ExperimentalTextApi::class)
 @Composable
-fun Clock(clockStyle: ClockStyle = ClockStyle()) {
+fun Clock(modifier: Modifier,clockStyle: ClockStyle = ClockStyle()) {
 var clockStyle by remember {
     mutableStateOf(clockStyle)
 }
@@ -83,8 +139,10 @@ var clockStyle by remember {
         mutableStateOf(hourAndMinuteAngle(hourMinuteAmPm()).hourAngle-90)
     }
     Log.d("hourHandAngle", "Clock: $hourHandAngle")
-
+Box(modifier = modifier.wrapContentHeight()){
     Canvas(modifier = Modifier
+        .align(Alignment.Center)
+        .wrapContentHeight()
 
         .pointerInput(Unit) {
             detectDragGestures(
@@ -154,6 +212,8 @@ var clockStyle by remember {
 
         smallAndLargeHandDotPointer(clockStyle, radiusInsideComponent, angleToRadyanForDraw)
     }
+
+}
 
 
 }
