@@ -6,12 +6,16 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.util.Log
 import android.widget.TimePicker
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+
 
 
 import androidx.compose.foundation.layout.Column
@@ -25,8 +29,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
@@ -35,80 +42,140 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.graphicsLayer
 
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import java.util.Calendar
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
+
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun TimePicker(clockStyle: ClockStyle = ClockStyle()){
-    Column (
+fun TimePicker(clockStyle: ClockStyle = ClockStyle()) {
+    val timeInfo = hourMinuteAmPm()
+    var amPmButtonState by remember {
+        mutableStateOf(timeInfo.amPm)
+    }
+
+    Column(
         Modifier
-            .wrapContentHeight()
+
             .padding(horizontal = 50.dp)
-            .background(color = androidx.compose.ui.graphics.Color.LightGray)
+            .background(color = androidx.compose.ui.graphics.Color.Transparent)
             .border(0.5.dp, color = clockStyle.header.headeUnselectedColor),
         horizontalAlignment = Alignment.CenterHorizontally,
-verticalArrangement = Arrangement.SpaceEvenly
-    ){
+        verticalArrangement = Arrangement.Center
+    ) {
         Row(
             Modifier
                 .fillMaxWidth()
 
                 .height(84.dp)
-                .background(clockStyle.header.headerBackgroundColor)) {
+                .background(clockStyle.header.headerBackgroundColor)
+        ) {
 
         }
 
 
-        Box(modifier = Modifier.height(290.dp)) { // Box'un ekranı doldurmasını sağlayacak şekilde genişletilmesi
-            Clock(modifier = Modifier.align(Alignment.Center), clockStyle = clockStyle) // Clock widget'ını merkeze alın
-Row (modifier = Modifier
-    .align(Alignment.BottomCenter)
-    .fillMaxWidth().graphicsLayer {
-        // Y ekseni çevirisi ile Row'u yukarı kaydır
-     translationY = +15.dp.toPx()
-    },
-    verticalAlignment = Alignment.Bottom,
-    horizontalArrangement = Arrangement.SpaceBetween){
-    // Sol alt köşedeki yuvarlak buton
-    Button(
-        onClick = { /* Buton tıklama işlevi */ },
-        modifier = Modifier
-            // Butonu sol alt köşeye konumlandır
-            .padding(16.dp) // Kenarlardan biraz boşluk bırak
-            .size(50.dp), // Butonun boyutunu ayarla
-        shape = CircleShape, // Yuvarlak şekil
-        contentPadding = PaddingValues(0.dp) // İçerik için padding'i sıfırla, tam yuvarlaklık için
-    ) {
-        // Buton içeriği, örneğin bir ikon ekleyebilirsiniz
-    }
+        Box(
+            modifier = Modifier
+                .zIndex(1f)
+                .height(clockStyle.shapes.clockfaceRadius * 0.90F)
+                .background(clockStyle.body.bodyBackgroundColor)
+                .drawBehind {
 
-    // Sağ alt köşedeki yuvarlak buton
-    Button(
-        onClick = { /* Buton tıklama işlevi */ },
-        modifier = Modifier
-            // Butonu sağ alt köşeye konumlandır
-            .padding(16.dp) // Kenarlardan biraz boşluk bırak
-            .size(50.dp), // Butonun boyutunu ayarla
-        shape = CircleShape, // Yuvarlak şekil
-        contentPadding = PaddingValues(0.dp) // İçerik için padding'i sıfırla, tam yuvarlaklık için
-    ) {
-        // Buton içeriği, örneğin bir ikon ekleyebilirsiniz
-    }
-}
+                }
+        ) {
+
+
+            Clock(
+                modifier = Modifier
+                    .height(clockStyle.shapes.clockfaceRadius * 0.75f)
+                    .clip(
+                        CircleShape
+                    )
+                    .width(clockStyle.shapes.clockfaceRadius * 0.75f)
+                    .align(
+                        Alignment.TopCenter
+                    )
+                    .padding(top = 8.dp)
+
+
+                    .graphicsLayer {
+
+                    }, clockStyle = clockStyle
+            ) {
+                Log.d("TimePicker", "TimePicker: ${it}")
+            }
+            Row(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = 16.dp,
+                    )
+                    .graphicsLayer {
+
+                        translationY = (clockStyle.shapes.clockfaceRadius * 0.70F).toPx()
+                    },
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                val (amButtonColor, pmButtonColor) = when (amPmButtonState) {
+                    AmPm.AM -> Pair(
+                        clockStyle.body.amPmSelectedColor,
+                        clockStyle.body.amPmUnselectedColor
+                    ) // AM seçiliyse
+                    AmPm.PM -> Pair(
+                        clockStyle.body.amPmUnselectedColor,
+                        clockStyle.body.amPmSelectedColor
+                    ) // PM seçiliyse
+                }
+
+                TextButton(
+                    onClick = { amPmButtonState = AmPm.AM },
+                    modifier = Modifier
+                        .background(amButtonColor, CircleShape)
+                        .size(50.dp),
+                    shape = CircleShape,
+                    contentPadding = PaddingValues()
+                ) {
+
+                    Text(AmPm.AM.name, color = clockStyle.body.amPmFontColor)
+                }
+
+
+                TextButton(
+                    onClick = { amPmButtonState = AmPm.PM },
+                    modifier = Modifier
+                        .background(pmButtonColor, CircleShape)
+
+                        .size(50.dp),
+                    shape = CircleShape,
+                    contentPadding = PaddingValues()
+                ) {
+
+                    Text(AmPm.PM.name, color = clockStyle.body.amPmFontColor)
+                }
+
+            }
 
         }
 
@@ -118,7 +185,8 @@ Row (modifier = Modifier
             Modifier
                 .fillMaxWidth()
                 .height(84.dp)
-                .background(color = androidx.compose.ui.graphics.Color.Blue)) {
+                .background(color = androidx.compose.ui.graphics.Color.Blue)
+        ) {
 
         }
     }
@@ -126,28 +194,37 @@ Row (modifier = Modifier
 
 @OptIn(ExperimentalTextApi::class)
 @Composable
-fun Clock(modifier: Modifier,clockStyle: ClockStyle = ClockStyle()) {
-var clockStyle by remember {
-    mutableStateOf(clockStyle)
-}
-    val radius = clockStyle.shapes.clockfaceRadius.value
-    val radiusInsideComponent=radius-30f
+fun Clock(
+    modifier: Modifier = Modifier,
+    clockStyle: ClockStyle = ClockStyle(),
+    onTimeSelected: (Int) -> Unit
+) {
+    var clockStyle by remember {
+        mutableStateOf(clockStyle)
+    }
+    // DP birimini piksele çevirme
+ //   val radius = with(LocalDensity.current) { clockStyle.shapes.clockfaceRadius.toPx() }
+  val radius = clockStyle.shapes.clockfaceRadius.value.toFloat()
+    val radiusInsideComponent = radius - 30f
     var hourOrMinuteState by remember {
         mutableStateOf<ClockFaceType>(ClockFaceType.Hour)
     }
     var hourHandAngle by remember {
-        mutableStateOf(hourAndMinuteAngle(hourMinuteAmPm()).hourAngle-90)
+        mutableStateOf(hourAndMinuteAngle(hourMinuteAmPm()).hourAngle - 90)
     }
     Log.d("hourHandAngle", "Clock: $hourHandAngle")
-Box(modifier = modifier.wrapContentHeight()){
-    Canvas(modifier = Modifier
-        .align(Alignment.Center)
-        .wrapContentHeight()
+
+    Canvas(modifier = modifier
+        .zIndex(1f)
 
         .pointerInput(Unit) {
             detectDragGestures(
 
                 onDrag = { change, _ ->
+                    Log.d(
+                        "Angle",
+                        "Clock: angle ${change}"
+                    )
                     val centerX = (size.width / 2).toFloat()
                     val centerY = (size.height / 2).toFloat()
                     // Kullanıcının dokunma noktasına göre açıyı hesaplayın
@@ -173,6 +250,7 @@ Box(modifier = modifier.wrapContentHeight()){
                     when (hourOrMinuteState) {
                         ClockFaceType.Hour -> {
                             fromAngleToHour(hourHandAngle)
+                            onTimeSelected(fromAngleToHour(hourHandAngle))
                             Log.d(
                                 "Angle",
                                 "Clock: hour end ${
@@ -183,6 +261,7 @@ Box(modifier = modifier.wrapContentHeight()){
 
                         else -> {
                             fromAngleToMinut(hourHandAngle)
+                            onTimeSelected(fromAngleToMinut(hourHandAngle))
                             Log.d(
                                 "Angle",
                                 "Clock: min end   ${fromAngleToMinut(hourHandAngle)}"
@@ -213,16 +292,12 @@ Box(modifier = modifier.wrapContentHeight()){
         smallAndLargeHandDotPointer(clockStyle, radiusInsideComponent, angleToRadyanForDraw)
     }
 
-}
-
 
 }
-
-
 
 
 fun fromAngleToHour(angle: Float): Int {
-    val normalizedAngle =   angle +90
+    val normalizedAngle = angle + 90
     return when (normalizedAngle) {
         in 0f..29f -> 12
         in 30f..59f -> 1
@@ -239,24 +314,27 @@ fun fromAngleToHour(angle: Float): Int {
         else -> 12 // Eğer bir hata oluşursa varsayılan olarak 12'yi döndür
     }
 }
-fun fromAngleToMinut(angle: Float):Int{
-    val normalizedAngle =   angle +90
-    return Math.abs((normalizedAngle/6).toInt())
+
+fun fromAngleToMinut(angle: Float): Int {
+    val normalizedAngle = angle + 90
+    return Math.abs((normalizedAngle / 6).toInt())
 }
-private fun hourMinuteAmPm() :TimeInfo{
+
+private fun hourMinuteAmPm(): TimeInfo {
     val calendar = Calendar.getInstance() // Mevcut zamanı alır
     val hour = calendar.get(Calendar.HOUR) // 12 saatlik formatta saat bilgisini alır
     val amPm = calendar.get(Calendar.AM_PM) // AM veya PM değerini alır
-val minute= calendar.get(Calendar.MINUTE)
+    val minute = calendar.get(Calendar.MINUTE)
 
     val amPmType = if (amPm == Calendar.AM) AmPm.AM else AmPm.AM
 
     return TimeInfo(hour, minute, amPmType)
 }
-private fun hourAndMinuteAngle(timeInfo: TimeInfo):HourMinuteAngle{
-val hourAngle = (30*timeInfo.hour + timeInfo.minute/2 ).toFloat()
-    val minuteAngle= (5*timeInfo.minute).toFloat()
-    return HourMinuteAngle(hourAngle = hourAngle,minuteAngle=minuteAngle)
+
+private fun hourAndMinuteAngle(timeInfo: TimeInfo): HourMinuteAngle {
+    val hourAngle = (30 * timeInfo.hour + timeInfo.minute / 2).toFloat()
+    val minuteAngle = (5 * timeInfo.minute).toFloat()
+    return HourMinuteAngle(hourAngle = hourAngle, minuteAngle = minuteAngle)
 }
 
 private fun DrawScope.ClockCircle(
@@ -270,12 +348,12 @@ private fun DrawScope.ClockCircle(
             color = clockStyle.colors.clockFaceColor.toArgb()
             style = Paint.Style.FILL
 
-            setShadowLayer(
-                50f,
-                0f,
-                0f,
-                Color.argb(50, 0, 0, 0)
-            )
+//            setShadowLayer(
+//                50f,
+//                0f,
+//                0f,
+//                Color.argb(50, 0, 0, 0)
+//            )
         })
 
     }
@@ -287,7 +365,7 @@ private fun DrawScope.ClockNumbers(
     hourOrMinute: ClockFaceType,
     radius: Float,
 
-) {
+    ) {
     // Clock Numbers
 
     val paint = Paint().apply {
@@ -311,12 +389,12 @@ private fun DrawScope.ClockNumbers(
             val textHeight = bounds.height()
 
             val textX =
-                (radius  * cos(angleToRadyan) + center.x) - textWidth * cos(
+                (radius * cos(angleToRadyan) + center.x) - textWidth * cos(
                     angleToRadyan
                 )
 
             val textY =
-                (radius   * sin(angleToRadyan) + center.y) - textHeight * sin(
+                (radius * sin(angleToRadyan) + center.y) - textHeight * sin(
                     angleToRadyan
                 ) + textHeight / 2
             Log.d("Clock", "Clock: cos(angleInRad${cos(angleToRadyan)}")
@@ -339,7 +417,7 @@ private fun DrawScope.ClockNumbers(
                 (radius * cos(angleToRadyan) + center.x) - textWidth * cos(angleToRadyan)
 
             val textY =
-                (radius * sin(angleToRadyan)+ center.y) - textHeight * sin(angleToRadyan)+ textHeight / 2
+                (radius * sin(angleToRadyan) + center.y) - textHeight * sin(angleToRadyan) + textHeight / 2
             Log.d("Clock", "Clock: cos(angleInRad${cos(angleToRadyan)}")
             drawContext.canvas.nativeCanvas.drawText(text, textX, textY, paint)
         }
@@ -358,10 +436,10 @@ private fun DrawScope.smallAndLargeHandDotPointer(
 
     val radiusPointer = clockStyle.shapes.handPointDotRadius.toPx()
     val centerPointer = Offset(
-        x = (radius   - clockStyle.shapes.handPointCircleRadius.toPx()/2-15) * cos(
+        x = (radius - clockStyle.shapes.handPointCircleRadius.toPx() / 2 - 15) * cos(
             angleToRadyanForDraw
         ) + center.x,
-        y = (radius - clockStyle.shapes.handPointCircleRadius.toPx()/2-15) * sin(
+        y = (radius - clockStyle.shapes.handPointCircleRadius.toPx() / 2 - 15) * sin(
             angleToRadyanForDraw
         ) + center.y
     )
@@ -399,10 +477,10 @@ private fun DrawScope.HourHand(
     ) {
 
     val endOffset = Offset(
-        x = ( radius  - clockStyle.shapes.handPointCircleRadius.toPx()/2-15) * cos(
+        x = (radius - clockStyle.shapes.handPointCircleRadius.toPx() / 2 - 15) * cos(
             angleToRadyanForDraw
         ) + center.x, // radius'ten 20 birim çıkar
-        y = (radius  - clockStyle.shapes.handPointCircleRadius.toPx()/2) * sin(
+        y = (radius - clockStyle.shapes.handPointCircleRadius.toPx() / 2) * sin(
             angleToRadyanForDraw
         ) + center.y  // radius'ten 20 birim çıkar
     )
@@ -428,8 +506,10 @@ private fun DrawScope.ClockCenter(clockStyle: ClockStyle) {
 @Composable
 fun ClockPreview() {
     TimePicker()
+    // Clock(modifier = Modifier.fillMaxSize())
 }
-fun main(){
+
+fun main() {
     hourMinuteAmPm()
     print(hourAndMinuteAngle(hourMinuteAmPm()).hourAngle)
 }

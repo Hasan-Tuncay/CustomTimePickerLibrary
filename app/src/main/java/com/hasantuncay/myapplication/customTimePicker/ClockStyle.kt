@@ -26,7 +26,9 @@ data class ClockShapes(
 data class ClockStyle(
     val colors: ClockColors = ClockColors(),
     val shapes: ClockShapes = ClockShapes(),
-    val header: HeaderColors=HeaderColors()
+    val header: HeaderColors=HeaderColors(),
+    val body:BodyColors=BodyColors()
+
 )
 
 data class HeaderColors(
@@ -36,3 +38,8 @@ data class HeaderColors(
     var headerSelectedColor: Color = headerSelectedC
 
 )
+data class BodyColors(var bodyBackgroundColor: Color = bodyBackground,
+    var amPmUnselectedColor:Color=amPmUnSelected,
+    var amPmSelectedColor: Color= amPmSelected,
+    var amPmFontColor: Color= amPmBodyFontColor,
+    )
