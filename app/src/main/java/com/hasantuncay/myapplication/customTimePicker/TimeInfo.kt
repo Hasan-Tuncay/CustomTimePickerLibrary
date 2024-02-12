@@ -1,4 +1,4 @@
 package com.hasantuncay.myapplication.customTimePicker
 
-data class TimeInfo(val hour: Int, val minute: Int, val amPm: AmPm)
+data class TimeInfo(var hour: Int, var minute: Int, val amPm: AmPm)
 
