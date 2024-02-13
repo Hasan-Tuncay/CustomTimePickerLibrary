@@ -27,7 +27,8 @@ data class ClockStyle(
     val colors: ClockColors = ClockColors(),
     val shapes: ClockShapes = ClockShapes(),
     val header: HeaderColors=HeaderColors(),
-    val body:BodyColors=BodyColors()
+    val body:BodyColors=BodyColors(),
+    val bottom:BottomButtonColor = BottomButtonColor()
 
 )
 
@@ -43,3 +44,5 @@ data class BodyColors(var bodyBackgroundColor: Color = bodyBackground,
     var amPmSelectedColor: Color= amPmSelected,
     var amPmFontColor: Color= amPmBodyFontColor,
     )
+
+data class BottomButtonColor(var bottomBackgroundColor:Color=bottomButtonBackground,var bottomButtonFontColor: Color= bottomButtonFont)

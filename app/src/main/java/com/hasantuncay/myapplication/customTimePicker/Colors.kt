@@ -19,6 +19,8 @@ val bodyBackground = Color(0xFFF2F2F2)
 val amPmUnSelected= Color(0xFFFFFFFF)
 val amPmSelected = Color(0x3E14B6F5)
 val amPmBodyFontColor=Color(0x9F7A7A7A)
+val bottomButtonBackground=Color(0x9FF2F2F2)
+val bottomButtonFont =Color(0x9F0A7398)
 
 val clockNumbColor=Color.Gray
 val clockFace  =  Color.White

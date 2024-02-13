@@ -1,26 +1,37 @@
 package com.hasantuncay.myapplication.customTimePicker
 
 import android.graphics.Paint
+import android.graphics.Paint.Align
 import android.graphics.Rect
 import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+
 
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -36,13 +47,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.graphicsLayer
 
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
@@ -119,7 +134,8 @@ fun TimePicker(clockStyle: ClockStyle = ClockStyle()) {
 
                     },
                 timeInfoState, clockStyle = clockStyle,
-            ) { timeInfoState.value=it
+            ) {
+                timeInfoState.value = it
                 Log.d(
 
                     "TimePicker", "TimePicker out: ${timeInfoState.value.hour}\n" +
@@ -184,17 +200,27 @@ fun TimePicker(clockStyle: ClockStyle = ClockStyle()) {
         }
 
 
-
+val heightBottom= 56.dp
         Row(
-            Modifier
+            modifier = Modifier
                 .fillMaxWidth()
-                .height(84.dp)
-                .background(color = androidx.compose.ui.graphics.Color.Blue)
+                .height(52.dp),
+            verticalAlignment = Alignment.CenterVertically // Yatayda merkeze hizala, ancak bu Row için geçerli değil.
         ) {
-
+            Button(
+                onClick = { /* Butona tıklandığında yapılacak işlem */ },
+                modifier = Modifier
+                    .fillMaxWidth() // Butonun genişliğini ekrana sığdır
+                    .height(52.dp), // Butonun yüksekliğini 52.dp yap
+                shape = RoundedCornerShape(0.dp), // Köşe yuvarlaklıklarını ayarla (Dikdörtgen için 0.dp)
+                colors = ButtonDefaults.buttonColors( containerColor = Color.LightGray) // Butonun arka plan rengini ayarla
+            ) {
+                Text("Buton Metni", color = Color.White) // Buton üzerindeki metin ve rengi
+            }
         }
     }
-}
+    }
+
 
 @OptIn(ExperimentalTextApi::class)
 @Composable
@@ -358,6 +384,7 @@ private fun DrawScope.ClockCircle(
     radius: Float,
     clockStyle: ClockStyle
 ) {
+
     drawContext.canvas.nativeCanvas.apply {
 
 
