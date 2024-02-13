@@ -32,6 +32,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -63,6 +64,7 @@ import androidx.compose.ui.unit.dp
 
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import java.lang.Math.toDegrees
 import java.util.Calendar
 import kotlin.math.PI
 import kotlin.math.atan2
@@ -200,7 +202,7 @@ fun TimePicker(clockStyle: ClockStyle = ClockStyle()) {
         }
 
 
-val heightBottom= 56.dp
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -213,9 +215,9 @@ val heightBottom= 56.dp
                     .fillMaxWidth() // Butonun genişliğini ekrana sığdır
                     .height(52.dp), // Butonun yüksekliğini 52.dp yap
                 shape = RoundedCornerShape(0.dp), // Köşe yuvarlaklıklarını ayarla (Dikdörtgen için 0.dp)
-                colors = ButtonDefaults.buttonColors( containerColor = Color.LightGray) // Butonun arka plan rengini ayarla
+                colors = ButtonDefaults.buttonColors( containerColor = clockStyle.bottom.bottomBackgroundColor) // Butonun arka plan rengini ayarla
             ) {
-                Text("Buton Metni", color = Color.White) // Buton üzerindeki metin ve rengi
+                Text("Done", color = clockStyle.bottom.bottomButtonFontColor, fontSize = 18.sp) // Buton üzerindeki metin ve rengi
             }
         }
     }
@@ -248,9 +250,9 @@ fun Clock(
     var hourHandAngle by remember {
         mutableStateOf(hourAndMinuteAngle(hourMinuteAmPm()).hourAngle - 90)
     }
+    var dd2=0F
 
-
-    Canvas(modifier = modifier
+        Canvas(modifier = modifier
         .zIndex(1f)
 
         .pointerInput(Unit) {
@@ -266,6 +268,7 @@ fun Clock(
                     // Kullanıcının dokunma noktasına göre açıyı hesaplayın
                     hourHandAngle =
                         calculateAngle(centerX, centerY, change.position.x, change.position.y)
+                   dd2=  calculateAngleForClock(centerX, centerY, change.position.x, change.position.y)
                     Log.d(
                         "Angle",
                         "Clock: angle ${
@@ -285,29 +288,30 @@ fun Clock(
                     )
                     when (hourOrMinuteState) {
                         ClockFaceType.Hour -> {
-                            fromAngleToHour(hourHandAngle)
-                            timeInfo.value.hour = fromAngleToHour(hourHandAngle).toInt()
+
+                            timeInfo.value.hour = fromAngleToHour(hourHandAngle)
                             onTimeSelected(timeInfo.value)
                             Log.d(
                                 "Angle",
                                 "Clock: hour end ${
-                                    fromAngleToHour(hourHandAngle)
+                                    fromAngleToHour(dd2)
                                 } "
                             )
                         }
 
                         else -> {
                             timeInfo.value.minute = fromAngleToMinut(hourHandAngle)
+                            fromAngleToMinute(dd2)
                             onTimeSelected(timeInfo.value)
                             Log.d(
                                 "Angle",
-                                "Clock: min end   ${fromAngleToMinut(hourHandAngle)}"
+                                "Clock: min end   ${    fromAngleToMinute(dd2)}"
                             )
                         }
                     }
 
 
-                    hourOrMinuteState = ClockFaceType.Minute
+                  // hourOrMinuteState = ClockFaceType.Minute
 
                 }
 
@@ -334,7 +338,8 @@ fun Clock(
 
 
 fun fromAngleToHour(angle: Float): Int {
-    val normalizedAngle = angle + 90
+    Log.d("fromAngleToMinut", "fromAngleToMinut: $angle")
+    val normalizedAngle = angle
     return when (normalizedAngle) {
         in 0f..29f -> 12
         in 30f..59f -> 1
@@ -351,15 +356,38 @@ fun fromAngleToHour(angle: Float): Int {
         else -> 12 // Eğer bir hata oluşursa varsayılan olarak 12'yi döndür
     }
 }
+fun calculateAngleForClock(centerX: Float, centerY: Float, touchX: Float, touchY: Float): Float {
+    val deltaX = touchX - centerX
+    val deltaY = touchY - centerY
+    val angleInRadians = atan2(deltaY, deltaX)
+    var angleInDegrees = Math.toDegrees(angleInRadians.toDouble()).toFloat()
+
+    // Açıyı saat yönünde ve 12'nin pozisyonundan başlayacak şekilde ayarla
+    angleInDegrees = (angleInDegrees + 90) % 360
+    if (angleInDegrees < 0) {
+        angleInDegrees += 360
+    }
+
+    return angleInDegrees
+}
+
+fun fromAngleToMinute(angle: Float): Int {
+    // Açıyı saat tasarımına göre 360 dereceye göre mod al
+    val normalizedAngle = if (angle < 0) (angle % 360) + 360 else angle % 360
+    // Normalleştirilmiş açıyı dakikaya çevir
+    return (normalizedAngle / 6).toInt()
+}
 
 //fun fromAngleToMinut(angle: Float): Int {
 //    val normalizedAngle = angle
 //    return (normalizedAngle / 6).toInt()
 //}
-fun fromAngleToMinut(cosValue: Float): Int {
-    val angleInRadians = Math.acos(cosValue.toDouble()) // Adım 1: Açıyı radian olarak bul
-    val angleInDegrees = Math.toDegrees(angleInRadians) // Adım 2: Radianı dereceye çevir
-    return (angleInDegrees / 6).toInt() // Adım 3: Dereceyi dakikaya çevir
+fun fromAngleToMinut(angle: Float): Int {
+
+    val normalizedAngle = angle + 90
+
+
+    return (normalizedAngle / 6).toInt()
 }
 
 
@@ -504,11 +532,23 @@ private fun DrawScope.smallAndLargeHandDotPointer(
     )
 }
 
-fun calculateAngle(centerX: Float, centerY: Float, touchX: Float, touchY: Float): Float {
+fun calculateAngle2(centerX: Float, centerY: Float, touchX: Float, touchY: Float): Float {
     val deltaX = touchX - centerX
     val deltaY = touchY - centerY
     val angleInRadians = atan2(deltaY, deltaX)
     return Math.toDegrees(angleInRadians.toDouble()).toFloat()
+}
+
+
+fun calculateAngle(centerX: Float, centerY: Float, touchX: Float, touchY: Float): Float {
+    val deltaX = touchX - centerX
+    val deltaY = touchY - centerY
+    val angleInRadians = atan2(deltaY, deltaX)
+    var angleInDegrees = toDegrees(angleInRadians.toDouble()).toFloat()
+    if (angleInDegrees < 0) {
+        angleInDegrees += 360  // Negatif açıları pozitife çevir
+    }
+    return angleInDegrees
 }
 
 
