@@ -6,12 +6,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 data class ClockColors(
-    var clockFaceColor: Color= clockFace,
-    var centerPointColor: Color =centerPointcircColor ,
+    var genaralBackgrgroundColor:Color= generalBackground,
+    var clockFaceColor: Color = clockFace,
+    var centerPointColor: Color = centerPointcircColor,
     var hourHandsColor: Color = hourHandLineColor,
     var minuteHandColor: Color = minuteHandLineColor,
     var handPointDotColor: Color = hourHandPointerDotColor,
-    var clockNumberColor: Color=clockNumbColor,
+    var clockNumberColor: Color = clockNumbColor,
     var handPointCircleColor: Color = hourHandPointerCircleColor
 )
 
@@ -26,23 +27,30 @@ data class ClockShapes(
 data class ClockStyle(
     val colors: ClockColors = ClockColors(),
     val shapes: ClockShapes = ClockShapes(),
-    val header: HeaderColors=HeaderColors(),
-    val body:BodyColors=BodyColors(),
-    val bottom:BottomButtonColor = BottomButtonColor()
+    val header: HeaderColors = HeaderColors(),
+    var body: BodyColors = BodyColors(),
+    val bottom: BottomButtonColor = BottomButtonColor()
 
 )
 
 data class HeaderColors(
     var headerBackgroundColor: Color = Color.White,
-    var headerSeperateDotColor: Color= headerSeparator ,
-    var headeUnselectedColor: Color = headerUnselected ,
-    var headerSelectedColor: Color = headerSelectedC
+    var headerSeperateDotColor: Color = headerSeparator,
+    var headeUnselectedColor: Color = headerUnselected,
+    var headerSelectedColor: Color = headerSelected,
+    var headerAmPmFontColor:Color=headerAmPmFont
 
 )
-data class BodyColors(var bodyBackgroundColor: Color = bodyBackground,
-    var amPmUnselectedColor:Color=amPmUnSelected,
-    var amPmSelectedColor: Color= amPmSelected,
-    var amPmFontColor: Color= amPmBodyFontColor,
-    )
 
-data class BottomButtonColor(var bottomBackgroundColor:Color=bottomButtonBackground,var bottomButtonFontColor: Color= bottomButtonFont)
+data class BodyColors(
+    var bodyBackgroundColor: Color = bodyBackground,
+    var amPmUnselectedColor: Color = amPmUnSelected,
+    var amPmSelectedColor: Color = amPmSelected,
+    var amPmFontColor: Color = amPmBodyFontColor,
+)
+
+data class BottomButtonColor(
+    var bottomBackgroundColor: Color = bottomButtonBackground,
+    var bottomButtonFontColor: Color = bottomButtonFont,
+    var bottomSeparatorColor:Color= bottomSeperator
+)

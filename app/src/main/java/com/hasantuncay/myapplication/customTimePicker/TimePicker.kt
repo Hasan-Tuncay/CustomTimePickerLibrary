@@ -15,10 +15,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 
 
-
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,10 +28,12 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -65,6 +67,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import java.lang.Math.toDegrees
+import java.nio.file.WatchEvent
 import java.util.Calendar
 import kotlin.math.PI
 import kotlin.math.atan2
@@ -73,7 +76,8 @@ import kotlin.math.sin
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun TimePicker(clockStyle: ClockStyle = ClockStyle()) {
+fun TimePicker(modifier: Modifier = Modifier, clockStyle: ClockStyle = ClockStyle()) {
+
     val timeInfo = hourMinuteAmPm()
     var amPmButtonState = remember {
         mutableStateOf(timeInfo.amPm)
@@ -88,140 +92,197 @@ fun TimePicker(clockStyle: ClockStyle = ClockStyle()) {
                     "${timeInfoState.value.amPm}"
         )
     })
-    Column(
-        Modifier
-
-            .padding(horizontal = 50.dp)
-            .background(color = androidx.compose.ui.graphics.Color.Transparent)
-            .border(0.5.dp, color = clockStyle.header.headeUnselectedColor),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(clockStyle.colors.genaralBackgrgroundColor)
     ) {
-        Row(
+        Column(
             Modifier
-                .fillMaxWidth()
+                .align(Alignment.Center)
 
-                .height(84.dp)
-                .background(clockStyle.header.headerBackgroundColor)
+                .padding(horizontal = 50.dp)
+                .background(color = androidx.compose.ui.graphics.Color.Transparent)
+                .border(0.5.dp, color = clockStyle.header.headeUnselectedColor),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
+       CustomTimeDisplay( )
 
+
+            TimePickerBody(clockStyle, timeInfoState, amPmButtonState)
+
+            BottomButton(clockStyle)
         }
+    }
+
+}
 
 
-        Box(
+@Composable
+fun CustomTimeDisplay(clockStyle: ClockStyle= ClockStyle()) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(84.dp)
+            .background(clockStyle.header.headerBackgroundColor),
+        verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        // Saat kısmı
+        Text(
+            text = "12",
+            fontSize = 60.sp,
+            modifier = Modifier.align(Alignment.Bottom)
+        )
+        Spacer(modifier = Modifier.padding(horizontal = 2.dp))
+        // Noktaları çizmek için Canvas kullanımı
+        SeparatorDots()
+        Spacer(modifier = Modifier.padding(horizontal = 2.dp))
+        // Dakika kısmı
+        Text(
+            text = "36",
+            fontSize = 60.sp,
+            modifier = Modifier.align(Alignment.Bottom)
+        )
+
+        // AM/PM kısmı
+        Text(
+            text = "AM",
+            fontSize = 16.sp,
             modifier = Modifier
-                .zIndex(1f)
-                .height(clockStyle.shapes.clockfaceRadius * 0.90F)
-                .background(clockStyle.body.bodyBackgroundColor)
-                .drawBehind {
+                .padding(bottom = 60.sp.value.dp / 4)
+                .align(Alignment.Bottom)
 
-                }
-        ) {
+        )
+    }
+}
+@Composable
+private fun TimePickerBody(
+    clockStyle: ClockStyle,
+    timeInfoState: MutableState<TimeInfo>,
+    amPmButtonState: MutableState<AmPm>
+) {
+    Box(
+        modifier = Modifier
+            .zIndex(1f)
+            .height(clockStyle.shapes.clockfaceRadius * 0.90F)
+            .background(clockStyle.body.bodyBackgroundColor)
+            .drawBehind {
+
+            }
+    ) {
 
 
-            Clock(
-                modifier = Modifier
-                    .height(clockStyle.shapes.clockfaceRadius * 0.75f)
-                    .clip(
-                        CircleShape
-                    )
-                    .width(clockStyle.shapes.clockfaceRadius * 0.75f)
-                    .align(
-                        Alignment.TopCenter
-                    )
-                    .padding(top = 8.dp)
-
-
-                    .graphicsLayer {
-
-                    },
-                timeInfoState, clockStyle = clockStyle,
-            ) {
-                timeInfoState.value = it
-                Log.d(
-
-                    "TimePicker", "TimePicker out: ${timeInfoState.value.hour}\n" +
-                            "${timeInfoState.value.minute}\n" +
-                            "${timeInfoState.value.amPm}"
+        Clock(
+            modifier = Modifier
+                .height(clockStyle.shapes.clockfaceRadius * 0.75f)
+                .clip(
+                    CircleShape
                 )
-            }
-            Row(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-
-                    .fillMaxWidth()
-                    .padding(
-                        horizontal = 16.dp,
-                    )
-                    .graphicsLayer {
-
-                        translationY = (clockStyle.shapes.clockfaceRadius * 0.70F).toPx()
-                    },
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                val (amButtonColor, pmButtonColor) = when (amPmButtonState.value) {
-                    AmPm.AM -> Pair(
-                        clockStyle.body.amPmSelectedColor,
-                        clockStyle.body.amPmUnselectedColor
-                    ) // AM seçiliyse
-                    AmPm.PM -> Pair(
-                        clockStyle.body.amPmUnselectedColor,
-                        clockStyle.body.amPmSelectedColor
-                    ) // PM seçiliyse
-                }
-
-                TextButton(
-                    onClick = { amPmButtonState.value = AmPm.AM },
-                    modifier = Modifier
-                        .background(amButtonColor, CircleShape)
-                        .size(50.dp),
-                    shape = CircleShape,
-                    contentPadding = PaddingValues()
-                ) {
-
-                    Text(AmPm.AM.name, color = clockStyle.body.amPmFontColor)
-                }
+                .width(clockStyle.shapes.clockfaceRadius * 0.75f)
+                .align(
+                    Alignment.TopCenter
+                )
+                .padding(top = 8.dp)
 
 
-                TextButton(
-                    onClick = { amPmButtonState.value = AmPm.PM },
-                    modifier = Modifier
-                        .background(pmButtonColor, CircleShape)
+                .graphicsLayer {
 
-                        .size(50.dp),
-                    shape = CircleShape,
-                    contentPadding = PaddingValues()
-                ) {
+                },
+            timeInfoState, clockStyle = clockStyle,
+        ) {
+            timeInfoState.value = it
+            Log.d(
 
-                    Text(AmPm.PM.name, color = clockStyle.body.amPmFontColor)
-                }
-
-            }
-
+                "TimePicker", "TimePicker out: ${timeInfoState.value.hour}\n" +
+                        "${timeInfoState.value.minute}\n" +
+                        "${timeInfoState.value.amPm}"
+            )
         }
-
-
-
         Row(
             modifier = Modifier
+                .align(Alignment.TopCenter)
+
                 .fillMaxWidth()
-                .height(52.dp),
-            verticalAlignment = Alignment.CenterVertically // Yatayda merkeze hizala, ancak bu Row için geçerli değil.
+                .padding(
+                    horizontal = 16.dp,
+                )
+                .graphicsLayer {
+
+                    translationY = (clockStyle.shapes.clockfaceRadius * 0.70F).toPx()
+                },
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Button(
-                onClick = { /* Butona tıklandığında yapılacak işlem */ },
-                modifier = Modifier
-                    .fillMaxWidth() // Butonun genişliğini ekrana sığdır
-                    .height(52.dp), // Butonun yüksekliğini 52.dp yap
-                shape = RoundedCornerShape(0.dp), // Köşe yuvarlaklıklarını ayarla (Dikdörtgen için 0.dp)
-                colors = ButtonDefaults.buttonColors( containerColor = clockStyle.bottom.bottomBackgroundColor) // Butonun arka plan rengini ayarla
-            ) {
-                Text("Done", color = clockStyle.bottom.bottomButtonFontColor, fontSize = 18.sp) // Buton üzerindeki metin ve rengi
+            val (amButtonColor, pmButtonColor) = when (amPmButtonState.value) {
+                AmPm.AM -> Pair(
+                    clockStyle.body.amPmSelectedColor,
+                    clockStyle.body.amPmUnselectedColor
+                ) // AM seçiliyse
+                AmPm.PM -> Pair(
+                    clockStyle.body.amPmUnselectedColor,
+                    clockStyle.body.amPmSelectedColor
+                ) // PM seçiliyse
             }
+
+            TextButton(
+                onClick = { amPmButtonState.value = AmPm.AM },
+                modifier = Modifier
+                    .background(amButtonColor, CircleShape)
+                    .size(50.dp),
+                shape = CircleShape,
+                contentPadding = PaddingValues()
+            ) {
+
+                Text(AmPm.AM.name, color = clockStyle.body.amPmFontColor)
+            }
+
+
+            TextButton(
+                onClick = { amPmButtonState.value = AmPm.PM },
+                modifier = Modifier
+                    .background(pmButtonColor, CircleShape)
+
+                    .size(50.dp),
+                shape = CircleShape,
+                contentPadding = PaddingValues()
+            ) {
+
+                Text(AmPm.PM.name, color = clockStyle.body.amPmFontColor)
+            }
+
+        }
+
+    }
+}
+
+@Composable
+private fun BottomButton(clockStyle: ClockStyle) {
+    Divider(thickness = 0.5.dp, color = clockStyle.bottom.bottomSeparatorColor)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(52.dp),
+        verticalAlignment = Alignment.CenterVertically // Yatayda merkeze hizala, ancak bu Row için geçerli değil.
+    ) {
+        Button(
+            onClick = { /* Butona tıklandığında yapılacak işlem */ },
+            modifier = Modifier
+                .fillMaxWidth() // Butonun genişliğini ekrana sığdır
+                .height(52.dp), // Butonun yüksekliğini 52.dp yap
+            shape = RoundedCornerShape(0.dp), // Köşe yuvarlaklıklarını ayarla (Dikdörtgen için 0.dp)
+            colors = ButtonDefaults.buttonColors(containerColor = clockStyle.bottom.bottomBackgroundColor) // Butonun arka plan rengini ayarla
+        ) {
+            Text(
+                "Done",
+                color = clockStyle.bottom.bottomButtonFontColor,
+                fontSize = 18.sp
+            ) // Buton üzerindeki metin ve rengi
         }
     }
-    }
+}
 
 
 @OptIn(ExperimentalTextApi::class)
@@ -250,9 +311,9 @@ fun Clock(
     var hourHandAngle by remember {
         mutableStateOf(hourAndMinuteAngle(hourMinuteAmPm()).hourAngle - 90)
     }
-    var dd2=0F
+    var dd2 = 0F
 
-        Canvas(modifier = modifier
+    Canvas(modifier = modifier
         .zIndex(1f)
 
         .pointerInput(Unit) {
@@ -268,7 +329,12 @@ fun Clock(
                     // Kullanıcının dokunma noktasına göre açıyı hesaplayın
                     hourHandAngle =
                         calculateAngle(centerX, centerY, change.position.x, change.position.y)
-                   dd2=  calculateAngleForClock(centerX, centerY, change.position.x, change.position.y)
+                    dd2 = calculateAngleForClock(
+                        centerX,
+                        centerY,
+                        change.position.x,
+                        change.position.y
+                    )
                     Log.d(
                         "Angle",
                         "Clock: angle ${
@@ -305,13 +371,13 @@ fun Clock(
                             onTimeSelected(timeInfo.value)
                             Log.d(
                                 "Angle",
-                                "Clock: min end   ${    fromAngleToMinute(dd2)}"
+                                "Clock: min end   ${fromAngleToMinute(dd2)}"
                             )
                         }
                     }
 
 
-                  // hourOrMinuteState = ClockFaceType.Minute
+                    // hourOrMinuteState = ClockFaceType.Minute
 
                 }
 
@@ -356,6 +422,7 @@ fun fromAngleToHour(angle: Float): Int {
         else -> 12 // Eğer bir hata oluşursa varsayılan olarak 12'yi döndür
     }
 }
+
 fun calculateAngleForClock(centerX: Float, centerY: Float, touchX: Float, touchY: Float): Float {
     val deltaX = touchX - centerX
     val deltaY = touchY - centerY
@@ -430,7 +497,21 @@ private fun DrawScope.ClockCircle(
 
     }
 }
+@Composable
+fun  SeparatorDots(modifier: Modifier=Modifier,clockStyle: ClockStyle = ClockStyle()) {
+    Box(modifier = modifier){
+        Canvas(modifier = Modifier
+            .padding(horizontal = 4.dp)
+            .align(Alignment.Center)
+            .size(width = 10.dp, height = 60.sp.value.dp)) {
+            val dotSize = 4.dp.toPx()
+            val spaceBetween = 20.dp.toPx()
+            drawCircle(Color.Black, dotSize, center = center.copy(y = center.y - spaceBetween / 2))
+            drawCircle(Color.Black, dotSize, center = center.copy(y = center.y + spaceBetween / 2))
+        }
+    }
 
+}
 
 private fun DrawScope.ClockNumbers(
     clockStyle: ClockStyle,
