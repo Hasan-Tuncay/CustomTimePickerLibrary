@@ -383,7 +383,10 @@ fun Clock(
                         }"
                     )
                 }, onDragEnd = {
-val timeInfo=TimeInfo(timeInfo.value.hour,timeInfo.value.hour,timeInfo.value.amPm)
+                    val timeInfo=timeInfo.value.copy()
+// val timeInfo=TimeInfo(timeInfo.value.hour,timeInfo.value.hour,timeInfo.value.amPm)
+
+
                     when (hourOrMinuteState) {
                         ClockFaceType.HOUR -> {
 
