@@ -70,15 +70,18 @@ fun TimePicker(modifier: Modifier = Modifier, clockStyle: ClockStyle = ClockStyl
     var amPmButtonState = remember {
         mutableStateOf(timeInfo.amPm)
     }
-    val timeInfoState = remember {
-        mutableStateOf(timeInfo)
+    var timeInfoState = remember {
+        mutableStateOf(  hourMinuteAmPm())
+    }
+    var timeInfoStateText by remember {
+        mutableStateOf<TimeInfo?> (null)
     }
     var hourOrMinuteState by remember {
         mutableStateOf<ClockFaceType>(ClockFaceType.HOUR)
     }
-    LaunchedEffect(key1 = amPmButtonState.value, block = {
+    LaunchedEffect(key1 = timeInfoState.value, block = {
         Log.d(
-            "TimePicker",
+            "hourOrMinuteState",
             "TimePicker out: ${timeInfoState.value.hour}\n" + "${timeInfoState.value.minute}\n" + "${timeInfoState.value.amPm}"
         )
     })
@@ -97,7 +100,8 @@ fun TimePicker(modifier: Modifier = Modifier, clockStyle: ClockStyle = ClockStyl
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            CustomTimeDisplay(hourOrMinuteState,
+            CustomTimeDisplay(
+                hourOrMinuteState,
                 timeInfoState,
                 amPmButtonState,
                 onClockFaceChange = { hourOrMinuteState = it })
@@ -109,7 +113,14 @@ fun TimePicker(modifier: Modifier = Modifier, clockStyle: ClockStyle = ClockStyl
                 amPmButtonState,
                 onClockFaceChange = { clockfaceType ->
                     hourOrMinuteState = clockfaceType
-                    Log.d("hourOrMinuteState", "TimePicker: ${hourOrMinuteState}  ")
+                    Log.d("hourOrMinuteState", "TimePicker: ${hourOrMinuteState}")
+                },
+                onTimeInfoState = {
+                    timeInfoState.value.amPm = it.amPm
+                    timeInfoState.value.hour = it.hour
+                    timeInfoState.value.minute = it.minute
+                    timeInfoStateText=it
+                    Log.d("hourOrMinuteState", "TimeInfo timepickerbody: ${timeInfoState}")
                 })
 
             BottomButton(clockStyle)
@@ -127,6 +138,14 @@ fun CustomTimeDisplay(
     clockStyle: ClockStyle = ClockStyle(),
     onClockFaceChange: (ClockFaceType) -> Unit
 ) {
+//    val timeInfoState by remember {
+//        mutableStateOf(timeInfoState)
+//    }
+
+    Log.d(
+        "hourOrMinuteState",
+        "TimePicker out: ${timeInfoState.value.hour}\n" + "${timeInfoState.value.minute}\n" + "${timeInfoState.value.amPm}"
+    )
     val (hourTextColor, minuteTextColor) = when (hourOrMinuteState) {
         ClockFaceType.HOUR -> Pair(
             clockStyle.header.headerSelectedColor, clockStyle.header.headeUnselectedColor
@@ -181,8 +200,10 @@ private fun TimePickerBody(
     clockStyle: ClockStyle,
     timeInfoState: MutableState<TimeInfo>,
     amPmButtonState: MutableState<AmPm>,
+    onTimeInfoState: (TimeInfo) -> Unit,
     onClockFaceChange: (ClockFaceType) -> Unit
 ) {
+
     Box(modifier = Modifier
         .zIndex(1f)
         .height(clockStyle.shapes.clockfaceRadius * 0.90F)
@@ -211,12 +232,11 @@ private fun TimePickerBody(
             hourOrMinuteState,
             clockStyle = clockStyle,
             onClockFaceChange = { onClockFaceChange(it) })
-        {
-            timeInfoState.value = it
+        { timeInfo ->
+            timeInfoState.value = timeInfo
+            onTimeInfoState(timeInfo)
             Log.d(
-
-                "TimePicker",
-                "TimePicker out: ${timeInfoState.value.hour}\n" + "${timeInfoState.value.minute}\n" + "${timeInfoState.value.amPm}"
+                "Angle", "Clock: min end   ${timeInfo}"
             )
         }
         Row(
@@ -244,7 +264,10 @@ private fun TimePickerBody(
             }
 
             TextButton(
-                onClick = { amPmButtonState.value = AmPm.AM },
+                onClick = {
+                    amPmButtonState.value = AmPm.AM
+                    timeInfoState.value.amPm = AmPm.AM
+                },
                 modifier = Modifier
                     .background(amButtonColor, CircleShape)
                     .size(50.dp),
@@ -257,7 +280,10 @@ private fun TimePickerBody(
 
 
             TextButton(
-                onClick = { amPmButtonState.value = AmPm.PM },
+                onClick = {
+                    amPmButtonState.value = AmPm.PM
+                    timeInfoState.value.amPm = AmPm.PM
+                },
                 modifier = Modifier
                     .background(pmButtonColor, CircleShape)
 
@@ -310,7 +336,7 @@ fun Clock(
     clockStyle: ClockStyle = ClockStyle(),
     onTimeSelected: (TimeInfo) -> Unit
 ) {
-    val hourOrMinuteState by remember {
+    var hourOrMinuteState by remember {
         mutableStateOf(hourOrMinuteState)
     }
     val timeInfo = remember {
@@ -357,12 +383,12 @@ fun Clock(
                         }"
                     )
                 }, onDragEnd = {
-
+val timeInfo=TimeInfo(timeInfo.value.hour,timeInfo.value.hour,timeInfo.value.amPm)
                     when (hourOrMinuteState) {
                         ClockFaceType.HOUR -> {
 
-                            timeInfo.value.hour = fromAngleToHour(hourHandAngle)
-                            onTimeSelected(timeInfo.value)
+                            timeInfo.hour = fromAngleToHour(hourHandAngle)
+                            onTimeSelected(timeInfo)
                             Log.d(
                                 "Angle", "Clock: hour end ${
                                     fromAngleToHour(dd2)
@@ -371,18 +397,18 @@ fun Clock(
                         }
 
                         else -> {
-                            timeInfo.value.minute =   fromAngleToMinute(dd2)
+                            timeInfo.minute = fromAngleToMinute(dd2)
                             fromAngleToMinute(dd2)
-                            onTimeSelected(timeInfo.value)
+                            onTimeSelected(timeInfo)
                             Log.d(
                                 "Angle", "Clock: min end   ${fromAngleToMinute(dd2)}"
                             )
                         }
                     }
 
-                    onClockFaceChange(ClockFaceType.MINUTE)
+                    // onClockFaceChange(ClockFaceType.MINUTE)
 
-
+                    hourOrMinuteState = ClockFaceType.MINUTE
                 }
 
             )
@@ -409,20 +435,20 @@ fun Clock(
 
 fun fromAngleToHour(angle: Float): Int {
     Log.d("fromAngleToMinut", "fromAngleToMinut: $angle")
-    val normalizedAngle = angle
+    val normalizedAngle = if (angle < 0) (angle % 360) + 360 else angle % 360
     return when (normalizedAngle) {
-        in 0f..29f -> 12
-        in 30f..59f -> 1
-        in 60f..89f -> 2
-        in 90f..119f -> 3
-        in 120f..149f -> 4
-        in 150f..179f -> 5
-        in 180f..209f -> 6
-        in 210f..239f -> 7
-        in 240f..269f -> 8
-        in 270f..299f -> 9
-        in 300f..329f -> 10
-        in 330f..359f -> 11
+        in 0f..29f -> 3
+        in 30f..59f -> 4
+        in 60f..89f -> 5
+        in 90f..119f -> 6
+        in 120f..149f -> 7
+        in 150f..179f -> 8
+        in 180f..209f -> 9
+        in 210f..239f -> 10
+        in 240f..269f -> 11
+        in 270f..299f -> 12
+        in 300f..329f -> 1
+        in 330f..359f -> 2
         else -> 12 // Eğer bir hata oluşursa varsayılan olarak 12'yi döndür
     }
 }
