@@ -1,6 +1,8 @@
 plugins {
-    id("com.android.application")
+//    id("com.android.application")
+    id("com.android.library")
     id("org.jetbrains.kotlin.android")
+    id ("maven-publish")
 }
 
 android {
@@ -8,11 +10,11 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.hasantuncay.myapplication"
+      //  applicationId = "com.hasantuncay.myapplication"
         minSdk = 22
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+     //  versionCode = 1
+        //versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -66,4 +68,24 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+}
+
+afterEvaluate{
+
+    publishing {
+        publications {
+            create<MavenPublication>("release") {
+                from(components["release"])
+
+                groupId = "com.hasantuncay"
+                artifactId = "customizable-time-picker"
+                version = "1.0"
+            }
+        }
+        repositories {
+            maven {
+                url = uri("${buildDir}/repo")
+            }
+        }
+    }
 }

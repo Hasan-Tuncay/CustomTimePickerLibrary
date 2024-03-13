@@ -5,7 +5,6 @@ import android.graphics.Rect
 
 import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -28,8 +27,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -50,7 +47,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.graphicsLayer
@@ -64,7 +60,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 
 import androidx.compose.ui.unit.sp
@@ -78,7 +73,7 @@ import kotlin.math.sin
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun TimePicker(modifier: Modifier = Modifier, clockStyle: ClockStyle = ClockStyle(), onTimeInfo: (TimeInfo)->Unit ) {
+fun TimePickerCustomizable(modifier: Modifier = Modifier, clockStyle: ClockStyle = ClockStyle(), onTimeInfo: (TimeInfo)->Unit ) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
     var columnBounds by remember { mutableStateOf<
@@ -791,7 +786,7 @@ private fun DrawScope.ClockCenter(clockStyle: ClockStyle) {
 @Preview(showBackground = true)
 @Composable
 fun ClockPreview() {
-    TimePicker(){
+    TimePickerCustomizable(){
         Log.d("ClockPreview", "ClockPreview: ${it}")
     }
     // Clock(modifier = Modifier.fillMaxSize())

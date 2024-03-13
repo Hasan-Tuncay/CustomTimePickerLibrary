@@ -13,7 +13,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "My Application"
+rootProject.name = "Time Picker"
 include(":app")
-include(":mylibrary")
-include(":custom-time-picker")
+
+

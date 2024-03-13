@@ -2,27 +2,29 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <application
-        android:allowBackup="true"
-        android:dataExtractionRules="@xml/data_extraction_rules"
-        android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true"
-        android:theme="@style/Theme.MyApplication"
-        tools:targetApi="31">
-        <activity
-            android:name=".MainActivity"
-            android:exported="true"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.MyApplication">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-    </application>
 
 </manifest>
+
+<!--<application-->
+<!--    &lt;!&ndash;        android:allowBackup="true"&ndash;&gt;-->
+<!--    &lt;!&ndash;        android:dataExtractionRules="@xml/data_extraction_rules"&ndash;&gt;-->
+<!--    &lt;!&ndash;        android:fullBackupContent="@xml/backup_rules"&ndash;&gt;-->
+<!--    &lt;!&ndash;        android:icon="@mipmap/ic_launcher"&ndash;&gt;-->
+<!--    &lt;!&ndash;        android:label="@string/app_name"&ndash;&gt;-->
+<!--    &lt;!&ndash;        android:roundIcon="@mipmap/ic_launcher_round"&ndash;&gt;-->
+<!--    &lt;!&ndash;        android:supportsRtl="true"&ndash;&gt;-->
+<!--    &lt;!&ndash;        android:theme="@style/Theme.MyApplication"&ndash;&gt;-->
+<!--    &lt;!&ndash;        tools:targetApi="31">&ndash;&gt;-->
+<!--    &lt;!&ndash;        <activity&ndash;&gt;-->
+<!--    &lt;!&ndash;            android:name=".MainActivity"&ndash;&gt;-->
+<!--    &lt;!&ndash;            android:exported="true"&ndash;&gt;-->
+<!--    &lt;!&ndash;            android:label="@string/app_name"&ndash;&gt;-->
+<!--    &lt;!&ndash;            android:theme="@style/Theme.MyApplication">&ndash;&gt;-->
+<!--    &lt;!&ndash;            <intent-filter>&ndash;&gt;-->
+<!--    &lt;!&ndash;                <action android:name="android.intent.action.MAIN" />&ndash;&gt;-->
+
+<!--    &lt;!&ndash;                <category android:name="android.intent.category.LAUNCHER" />&ndash;&gt;-->
+<!--    &lt;!&ndash;            </intent-filter>&ndash;&gt;-->
+<!--    &lt;!&ndash;        </activity>&ndash;&gt;-->
+<!--    </application>-->
