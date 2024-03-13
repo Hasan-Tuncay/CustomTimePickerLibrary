@@ -17,10 +17,11 @@ data class ClockColors(
 )
 
 data class ClockShapes(
-    var clockfaceRadius: Dp = 350.dp,
-    var centerPointRadius: Dp = 3.dp,
-    var handPointDotRadius: Dp = 5.dp,
-    var handPointCircleRadius: Dp = 25.dp
+    var clockfaceRadius: Float = 250F ,
+    var centerPointRadius: Float = 3F,
+    var handPointDotRadius: Float = 5f,
+    var handPointCircleRadius: Float = 25F,
+    var handWwidth:Float=5F
 
 )
 

@@ -2,14 +2,19 @@ package com.hasantuncay.myapplication.customTimePicker
 
 import android.graphics.Paint
 import android.graphics.Rect
+
 import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 
 
 import androidx.compose.foundation.layout.Column
@@ -22,6 +27,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -42,6 +50,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.graphicsLayer
@@ -49,8 +58,13 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 
 import androidx.compose.ui.unit.sp
@@ -64,8 +78,11 @@ import kotlin.math.sin
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun TimePicker(modifier: Modifier = Modifier, clockStyle: ClockStyle = ClockStyle()) {
-
+fun TimePicker(modifier: Modifier = Modifier, clockStyle: ClockStyle = ClockStyle(), onTimeInfo: (TimeInfo)->Unit ) {
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+    var columnBounds by remember { mutableStateOf<
+            androidx.compose.ui.geometry.Rect?>(null) }
     val timeInfo = hourMinuteAmPm()
     var amPmButtonState = remember {
         mutableStateOf(timeInfo.amPm)
@@ -73,58 +90,106 @@ fun TimePicker(modifier: Modifier = Modifier, clockStyle: ClockStyle = ClockStyl
     var timeInfoState = remember {
         mutableStateOf(  hourMinuteAmPm())
     }
-    var timeInfoStateText by remember {
-        mutableStateOf<TimeInfo?> (null)
+    var onDone by remember {
+        mutableStateOf(false)
     }
+
+
+    LaunchedEffect(key1 = onDone, block ={
+    onTimeInfo(timeInfoState.value)
+
+} )
     var hourOrMinuteState by remember {
         mutableStateOf<ClockFaceType>(ClockFaceType.HOUR)
     }
     LaunchedEffect(key1 = timeInfoState.value, block = {
-        Log.d(
-            "hourOrMinuteState",
-            "TimePicker out: ${timeInfoState.value.hour}\n" + "${timeInfoState.value.minute}\n" + "${timeInfoState.value.amPm}"
-        )
+
     })
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(clockStyle.colors.genaralBackgrgroundColor)
-    ) {
-        Column(
-            Modifier
-                .align(Alignment.Center)
+    if (onDone==false){
+        BoxWithConstraints(
+            modifier = modifier
 
-                .padding(horizontal = 50.dp)
-                .background(color = androidx.compose.ui.graphics.Color.Transparent)
-                .border(0.5.dp, color = clockStyle.header.headeUnselectedColor),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .fillMaxSize()
+                .background(clockStyle.colors.genaralBackgrgroundColor)
+                .pointerInput(Unit){
+                    detectTapGestures(onTap = { offset ->
+                        // Column'ın sınırlarını ve koordinatlarını kontrol et
+                        columnBounds?.let { bounds ->
+                            bounds.height
+                            // Tıklama koordinatlarının, Column'ın sınırları dışında olup olmadığını kontrol et
+                            if (!bounds.contains(offset)) {
+                              onDone=true
+                                Log.d("ScreenSettings",
+                                    "offset = ${offset}" +
+                                            "column bounds = ${columnBounds}")
+                            }
+                        }
+
+                    })
+                }
+
+
         ) {
-            CustomTimeDisplay(
-                hourOrMinuteState,
-                timeInfoState,
-                amPmButtonState,
-                onClockFaceChange = { hourOrMinuteState = it })
+
+            val constraintsScope = this
+
+            val clockShapes = with(LocalDensity.current) {
+                ClockShapes(
+                    clockfaceRadius = constraintsScope.maxWidth.toPx() * 0.35f,
+                    centerPointRadius = 3.dp.toPx()  ,
+                    handPointDotRadius = 5.dp.toPx() ,
+                    handPointCircleRadius = (constraintsScope.maxWidth.toPx() * 0.35f)  * 0.13F ,
+                    handWwidth = 2.dp.toPx()
+                )
+            }
+
+            val dynamicClockStyle = clockStyle.copy(shapes = clockShapes)
+            val radius = with(LocalDensity.current) { clockStyle.shapes.clockfaceRadius }
+            Log.d("ScreenSettings", "TimePicker: ClockShapes = ${clockShapes}" +
+                    "screenwidthCurrent = ${screenWidth}" +
+                    "column bounds = ${columnBounds}")
+            Column(
+                Modifier
+                    .align(Alignment.Center)
+                    .width(constraintsScope.maxWidth * 0.85f)
+                    .background(color = androidx.compose.ui.graphics.Color.Transparent)
+                    .border(0.5.dp, color = clockStyle.header.headeUnselectedColor)
+                .onGloballyPositioned { coordinates ->
+                val parentCoordinates = coordinates.parentCoordinates
+                columnBounds =  coordinates.boundsInWindow()
+               // columnBounds?.let { onPositionChanged(it) }
+            }
+
+            ) {
+
+                CustomTimeDisplay(
+                    hourOrMinuteState,
+                    timeInfoState,
+                    amPmButtonState,
+                    onClockFaceChange = {
+                        hourOrMinuteState=it
+                        Log.d("hourOrMinuteState", "onClockFaceChange CustomTimeDisplay: ${hourOrMinuteState}")
+                    })
 
 
-            TimePickerBody(hourOrMinuteState,
-                clockStyle,
-                timeInfoState,
-                amPmButtonState,
-                onClockFaceChange = { clockfaceType ->
-                    hourOrMinuteState = clockfaceType
-                    Log.d("hourOrMinuteState", "TimePicker: ${hourOrMinuteState}")
-                },
-                onTimeInfoState = {
-                    timeInfoState.value.amPm = it.amPm
-                    timeInfoState.value.hour = it.hour
-                    timeInfoState.value.minute = it.minute
-                    timeInfoStateText=it
-                    Log.d("hourOrMinuteState", "TimeInfo timepickerbody: ${timeInfoState}")
-                })
+                TimePickerBody(
+                    hourOrMinuteState,
+                    dynamicClockStyle,
+                    timeInfoState,
+                    amPmButtonState,
+                    onClockFaceChange = { clockfaceType ->
+                        hourOrMinuteState = clockfaceType
+                        Log.d("hourOrMinuteState", "onClockFaceChange: ${hourOrMinuteState}")
+                    },
+                    onTimeInfoState = {
+                        timeInfoState.value= it
+                        Log.d("hourOrMinuteState", "onTimeInfoState: ${timeInfoState}")
+                    })
 
-            BottomButton(clockStyle)
+                BottomButton(clockStyle,{ onDone= !onDone})
+            }
         }
+
     }
 
 }
@@ -165,10 +230,14 @@ fun CustomTimeDisplay(
     ) {
         // Saat kısmı
         Text(
-            text = timeInfoState.value.hour.toString(),
+            text = String.format("%02d", timeInfoState.value.hour),
             color = hourTextColor,
             fontSize = 60.sp,
-            modifier = Modifier.align(Alignment.Bottom)
+            modifier = Modifier
+                .align(Alignment.Bottom)
+                .clickable {
+                    onClockFaceChange(ClockFaceType.HOUR)
+                }
         )
         Spacer(modifier = Modifier.padding(horizontal = 2.dp))
         // Noktaları çizmek için Canvas kullanımı
@@ -176,10 +245,14 @@ fun CustomTimeDisplay(
         Spacer(modifier = Modifier.padding(horizontal = 2.dp))
         // Dakika kısmı
         Text(
-            text = timeInfoState.value.minute.toString(),
+            text = String.format("%02d", timeInfoState.value.minute),
             fontSize = 60.sp,
             color = minuteTextColor,
-            modifier = Modifier.align(Alignment.Bottom)
+            modifier = Modifier
+                .align(Alignment.Bottom)
+                .clickable {
+                    onClockFaceChange(ClockFaceType.MINUTE)
+                }
         )
 
         // AM/PM kısmı
@@ -203,22 +276,24 @@ private fun TimePickerBody(
     onTimeInfoState: (TimeInfo) -> Unit,
     onClockFaceChange: (ClockFaceType) -> Unit
 ) {
-
+    Log.d("hourOrMinuteState", "onClockFaceChange TimePickerBody: ${hourOrMinuteState}")
     Box(modifier = Modifier
         .zIndex(1f)
-        .height(clockStyle.shapes.clockfaceRadius * 0.90F)
+        .wrapContentHeight()
         .background(clockStyle.body.bodyBackgroundColor)
         .drawBehind {
 
         }) {
 
+        val dpValue = with(LocalDensity.current) { clockStyle.shapes.clockfaceRadius.toDp() * 2.2f }
 
         Clock(modifier = Modifier
-            .height(clockStyle.shapes.clockfaceRadius * 0.75f)
+            .fillMaxWidth()
+            .height(dpValue)
             .clip(
                 CircleShape
             )
-            .width(clockStyle.shapes.clockfaceRadius * 0.75f)
+
             .align(
                 Alignment.TopCenter
             )
@@ -229,14 +304,15 @@ private fun TimePickerBody(
 
             },
             timeInfoState,
-            hourOrMinuteState,
+            hourOrMinuteState = hourOrMinuteState,
             clockStyle = clockStyle,
-            onClockFaceChange = { onClockFaceChange(it) })
+            onClockFaceChange = { onClockFaceChange(it)
+            })
         { timeInfo ->
-            timeInfoState.value = timeInfo
+
             onTimeInfoState(timeInfo)
             Log.d(
-                "Angle", "Clock: min end   ${timeInfo}"
+                "hourOrMinuteState", "Clock: min end   ${timeInfo}"
             )
         }
         Row(
@@ -249,7 +325,7 @@ private fun TimePickerBody(
                 )
                 .graphicsLayer {
 
-                    translationY = (clockStyle.shapes.clockfaceRadius * 0.70F).toPx()
+                   translationY = clockStyle.shapes.clockfaceRadius * 1.75f
                 },
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -265,8 +341,11 @@ private fun TimePickerBody(
 
             TextButton(
                 onClick = {
+
                     amPmButtonState.value = AmPm.AM
-                    timeInfoState.value.amPm = AmPm.AM
+                    val timeInfoStateCopy=timeInfoState.value.copy()
+                    timeInfoStateCopy.amPm = AmPm.AM
+                    onTimeInfoState(timeInfoStateCopy)
                 },
                 modifier = Modifier
                     .background(amButtonColor, CircleShape)
@@ -282,7 +361,9 @@ private fun TimePickerBody(
             TextButton(
                 onClick = {
                     amPmButtonState.value = AmPm.PM
-                    timeInfoState.value.amPm = AmPm.PM
+                    val timeInfoStateCopy=timeInfoState.value.copy()
+                    timeInfoStateCopy.amPm = AmPm.PM
+                    onTimeInfoState(timeInfoStateCopy)
                 },
                 modifier = Modifier
                     .background(pmButtonColor, CircleShape)
@@ -301,7 +382,7 @@ private fun TimePickerBody(
 }
 
 @Composable
-private fun BottomButton(clockStyle: ClockStyle) {
+private fun BottomButton(clockStyle: ClockStyle,onDone : ()-> Unit) {
     Divider(thickness = 0.5.dp, color = clockStyle.bottom.bottomSeparatorColor)
 
     Row(
@@ -311,7 +392,7 @@ private fun BottomButton(clockStyle: ClockStyle) {
         verticalAlignment = Alignment.CenterVertically // Yatayda merkeze hizala, ancak bu Row için geçerli değil.
     ) {
         Button(
-            onClick = { /* Butona tıklandığında yapılacak işlem */ },
+            onClick = { onDone() },
             modifier = Modifier
                 .fillMaxWidth() // Butonun genişliğini ekrana sığdır
                 .height(52.dp), // Butonun yüksekliğini 52.dp yap
@@ -336,20 +417,23 @@ fun Clock(
     clockStyle: ClockStyle = ClockStyle(),
     onTimeSelected: (TimeInfo) -> Unit
 ) {
-    var hourOrMinuteState by remember {
-        mutableStateOf(hourOrMinuteState)
+    Log.d("hourOrMinuteState", "onClockFaceChange Clock out: ${hourOrMinuteState}")
+    var hourOrMinuteStateIn  by remember {
+        mutableStateOf<ClockFaceType>(hourOrMinuteState)
     }
-    val timeInfo = remember {
-        mutableStateOf(timeInfo.value)
 
-    }
+    Log.d("hourOrMinuteState", "onClockFaceChange Clock: ${hourOrMinuteState }")
     var clockStyle by remember {
         mutableStateOf(clockStyle)
     }
-
+LaunchedEffect(key1 = hourOrMinuteState, block = {
+     hourOrMinuteStateIn=hourOrMinuteState
+    Log.d("hourOrMinuteState", "onClockFaceChange Clock launch ${hourOrMinuteState }")
+})
     // DP birimini piksele çevirme
-    //   val radius = with(LocalDensity.current) { clockStyle.shapes.clockfaceRadius.toPx() }
-    val radius = clockStyle.shapes.clockfaceRadius.value.toFloat()
+
+
+    val radius = clockStyle.shapes.clockfaceRadius
     val radiusInsideComponent = radius - 30f
 
     var hourHandAngle by remember {
@@ -383,35 +467,43 @@ fun Clock(
                         }"
                     )
                 }, onDragEnd = {
-                    val timeInfo=timeInfo.value.copy()
-// val timeInfo=TimeInfo(timeInfo.value.hour,timeInfo.value.hour,timeInfo.value.amPm)
+                    val timeInfo = timeInfo.value.copy()
+//  val timeInfo=TimeInfo(timeInfo.value.hour,timeInfo.value.hour,timeInfo.value.amPm)
 
 
-                    when (hourOrMinuteState) {
+                    when (hourOrMinuteStateIn) {
                         ClockFaceType.HOUR -> {
-
+                            Log.d(
+                                "hourOrMinuteState",
+                                "onClockFaceChange Clock when: ${hourOrMinuteState}"
+                            )
                             timeInfo.hour = fromAngleToHour(hourHandAngle)
                             onTimeSelected(timeInfo)
                             Log.d(
-                                "Angle", "Clock: hour end ${
+                                "hourOrMinuteState", "Clock: hour end ${
                                     fromAngleToHour(dd2)
                                 } "
                             )
+
                         }
 
                         else -> {
+                            Log.d(
+                                "hourOrMinuteState",
+                                "onClockFaceChange Clock when: ${hourOrMinuteState}"
+                            )
                             timeInfo.minute = fromAngleToMinute(dd2)
-                            fromAngleToMinute(dd2)
+                            //    fromAngleToMinute(dd2)
                             onTimeSelected(timeInfo)
                             Log.d(
-                                "Angle", "Clock: min end   ${fromAngleToMinute(dd2)}"
+                                "hourOrMinuteState", "Clock: min end   ${fromAngleToMinute(dd2)}"
                             )
                         }
                     }
+                    hourOrMinuteStateIn = ClockFaceType.MINUTE
+                    onClockFaceChange(ClockFaceType.MINUTE)
 
-                    // onClockFaceChange(ClockFaceType.MINUTE)
 
-                    hourOrMinuteState = ClockFaceType.MINUTE
                 }
 
             )
@@ -619,11 +711,11 @@ private fun DrawScope.smallAndLargeHandDotPointer(
     ) {
     //SmallHandDotpointer
 
-    val radiusPointer = clockStyle.shapes.handPointDotRadius.toPx()
+    val radiusPointer = clockStyle.shapes.handPointDotRadius
     val centerPointer = Offset(
-        x = (radius - clockStyle.shapes.handPointCircleRadius.toPx() / 2 - 15) * cos(
+        x = (radius - clockStyle.shapes.handPointCircleRadius / 2) * cos(
             angleToRadyanForDraw
-        ) + center.x, y = (radius - clockStyle.shapes.handPointCircleRadius.toPx() / 2 - 15) * sin(
+        ) + center.x, y = (radius - clockStyle.shapes.handPointCircleRadius / 2) * sin(
             angleToRadyanForDraw
         ) + center.y
     )
@@ -638,7 +730,7 @@ private fun DrawScope.smallAndLargeHandDotPointer(
     drawCircle(
         color = clockStyle.colors.handPointCircleColor,
         center = centerPointer,
-        radius = clockStyle.shapes.handPointCircleRadius.toPx()
+        radius = clockStyle.shapes.handPointCircleRadius
     )
 }
 
@@ -671,10 +763,10 @@ private fun DrawScope.HourHand(
     ) {
 
     val endOffset = Offset(
-        x = (radius - clockStyle.shapes.handPointCircleRadius.toPx() / 2 - 15) * cos(
+        x = (radius - clockStyle.shapes.handPointCircleRadius / 2  ) * cos(
             angleToRadyanForDraw
         ) + center.x, // radius'ten 20 birim çıkar
-        y = (radius - clockStyle.shapes.handPointCircleRadius.toPx() / 2) * sin(
+        y = (radius - clockStyle.shapes.handPointCircleRadius / 2) * sin(
             angleToRadyanForDraw
         ) + center.y  // radius'ten 20 birim çıkar
     )
@@ -682,7 +774,7 @@ private fun DrawScope.HourHand(
         color = clockStyle.colors.hourHandsColor,
         start = Offset(center.x, center.y),
         end = endOffset,
-        strokeWidth = 6F
+        strokeWidth = clockStyle.shapes.handWwidth
     )
 }
 
@@ -690,7 +782,7 @@ private fun DrawScope.HourHand(
 private fun DrawScope.ClockCenter(clockStyle: ClockStyle) {
     drawCircle(
         color = clockStyle.colors.centerPointColor,
-        clockStyle.shapes.centerPointRadius.toPx(),
+        clockStyle.shapes.centerPointRadius,
         center = Offset(center.x, center.y)
     )
 }
@@ -699,7 +791,9 @@ private fun DrawScope.ClockCenter(clockStyle: ClockStyle) {
 @Preview(showBackground = true)
 @Composable
 fun ClockPreview() {
-    TimePicker()
+    TimePicker(){
+        Log.d("ClockPreview", "ClockPreview: ${it}")
+    }
     // Clock(modifier = Modifier.fillMaxSize())
 }
 
