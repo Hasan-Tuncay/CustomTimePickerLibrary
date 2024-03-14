@@ -98,15 +98,7 @@ fun TimePickerCustomizable(
     var timeInfoState = remember {
         mutableStateOf(hourMinuteAmPm())
     }
-//    var onDone by remember {
-//        mutableStateOf(false)
-//    }
 
-
-//    LaunchedEffect(key1 = onDone, block = {
-//        onTimeInfo(timeInfoState.value)
-//
-//    })
     var hourOrMinuteState by remember {
         mutableStateOf<ClockFaceType>(ClockFaceType.HOUR)
     }
@@ -224,10 +216,10 @@ fun ShowTimePickerDialog(
         text = {
             TimePickerCustomizable(
                 modifier = Modifier.fillMaxWidth(),
-                clockStyle = ClockStyle(), // Stilinizi burada geçin
+                clockStyle = ClockStyle(),
                 onTimeInfo = { timeInfo ->
                     onTimeSelected(timeInfo)
-                    isDialogOpen.value = false // Zaman seçildikten sonra diyalogu kapat
+                    isDialogOpen.value = false
                 }
             )
         },
@@ -252,10 +244,10 @@ fun ShowCustomDialog(
             }) {
                 Log.d("hourOrMinuteState", "onClockFaceChange: ${isDialogOpen}")
                 TimePickerCustomizable(
-                    clockStyle = ClockStyle(), // Stilinizi burada geçin
+                    clockStyle = ClockStyle(),
                     onTimeInfo = { timeInfo ->
                         onTimeSelected(timeInfo)
-                        isDialogOpen.value = false // Zaman seçildikten sonra diyalogu kapat
+                        isDialogOpen.value = false
                     }
                 )
             }
@@ -464,15 +456,15 @@ private fun BottomButton(clockStyle: ClockStyle, onDone: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .height(52.dp),
-        verticalAlignment = Alignment.CenterVertically // Yatayda merkeze hizala, ancak bu Row için geçerli değil.
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Button(
             onClick = { onDone() },
             modifier = Modifier
-                .fillMaxWidth() // Butonun genişliğini ekrana sığdır
-                .height(52.dp), // Butonun yüksekliğini 52.dp yap
-            shape = RoundedCornerShape(0.dp), // Köşe yuvarlaklıklarını ayarla (Dikdörtgen için 0.dp)
-            colors = ButtonDefaults.buttonColors(containerColor = clockStyle.bottom.bottomBackgroundColor) // Butonun arka plan rengini ayarla
+                .fillMaxWidth()
+                .height(52.dp),
+            shape = RoundedCornerShape(0.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = clockStyle.bottom.bottomBackgroundColor)
         ) {
             Text(
                 "Done", color = clockStyle.bottom.bottomButtonFontColor, fontSize = 18.sp
@@ -505,7 +497,7 @@ fun Clock(
         hourOrMinuteStateIn = hourOrMinuteState
         Log.d("hourOrMinuteState", "onClockFaceChange Clock launch ${hourOrMinuteState}")
     })
-    // DP birimini piksele çevirme
+
 
 
     val radius = clockStyle.shapes.clockfaceRadius
@@ -620,7 +612,7 @@ fun fromAngleToHour(angle: Float): Int {
         in 270f..299f -> 12
         in 300f..329f -> 1
         in 330f..359f -> 2
-        else -> 12 // Eğer bir hata oluşursa varsayılan olarak 12'yi döndür
+        else -> 12
     }
 }
 
@@ -630,11 +622,11 @@ fun convertTimeInfoTo24HourFormat(timeInfo: TimeInfo): TimeInfo24 {
         AmPm.PM -> if (timeInfo.hour < 12) timeInfo.hour + 12 else timeInfo.hour // PM için, saat < 12 ise, saat değerine 12 eklenir
     }
 
-    // Saat ve dakikayı iki basamaklı formatına dönüştür
+
     val hourFormatted = String.format("%02d", hourIn24Format)
     val minuteFormatted = String.format("%02d", timeInfo.minute)
 
-    // Düzeltilmiş formatla TimeInfo24 nesnesi döndür
+
     return TimeInfo24(
         hour = hourFormatted,
         minute = minuteFormatted,
@@ -649,7 +641,7 @@ fun calculateAngleForClock(centerX: Float, centerY: Float, touchX: Float, touchY
     val angleInRadians = atan2(deltaY, deltaX)
     var angleInDegrees = Math.toDegrees(angleInRadians.toDouble()).toFloat()
 
-    // Açıyı saat yönünde ve 12'nin pozisyonundan başlayacak şekilde ayarla
+
     angleInDegrees = (angleInDegrees + 90) % 360
     if (angleInDegrees < 0) {
         angleInDegrees += 360
@@ -679,9 +671,9 @@ fun fromAngleToMinut(angle: Float): Int {
 
 
 private fun hourMinuteAmPm(): TimeInfo {
-    val calendar = Calendar.getInstance() // Mevcut zamanı alır
-    val hour = calendar.get(Calendar.HOUR) // 12 saatlik formatta saat bilgisini alır
-    val amPm = calendar.get(Calendar.AM_PM) // AM veya PM değerini alır
+    val calendar = Calendar.getInstance()
+    val hour = calendar.get(Calendar.HOUR)
+    val amPm = calendar.get(Calendar.AM_PM)
     val minute = calendar.get(Calendar.MINUTE)
 
     val amPmType = if (amPm == Calendar.AM) AmPm.AM else AmPm.PM
@@ -771,7 +763,7 @@ private fun DrawScope.ClockNumbers(
         textSize = 21.sp.toPx()
         textAlign = Paint.Align.CENTER
         color = clockStyle.colors.clockNumberColor.toArgb()
-        // Diğer paint ayarları buraya eklenebilir
+
     }
 
 
@@ -779,7 +771,7 @@ private fun DrawScope.ClockNumbers(
         for (index in 1..12) {
             val angleToRadyan = ((index * (360f / 12)) - 90f) * (PI / 180f).toFloat()
             val text =
-                if (index < 10) " $index " else index.toString()  // 1'den 9'a kadar olan sayıları iki haneli olarak formatla
+                if (index < 10) " $index " else index.toString()
 
 
             val bounds = Rect()
@@ -867,7 +859,7 @@ fun calculateAngle(centerX: Float, centerY: Float, touchX: Float, touchY: Float)
     val angleInRadians = atan2(deltaY, deltaX)
     var angleInDegrees = toDegrees(angleInRadians.toDouble()).toFloat()
     if (angleInDegrees < 0) {
-        angleInDegrees += 360  // Negatif açıları pozitife çevir
+        angleInDegrees += 360
     }
     return angleInDegrees
 }
@@ -884,10 +876,10 @@ private fun DrawScope.HourHand(
     val endOffset = Offset(
         x = (radius - clockStyle.shapes.handPointCircleRadius / 2) * cos(
             angleToRadyanForDraw
-        ) + center.x, // radius'ten 20 birim çıkar
+        ) + center.x,
         y = (radius - clockStyle.shapes.handPointCircleRadius / 2) * sin(
             angleToRadyanForDraw
-        ) + center.y  // radius'ten 20 birim çıkar
+        ) + center.y
     )
     drawLine(
         color = clockStyle.colors.hourHandsColor,
@@ -910,12 +902,9 @@ private fun DrawScope.ClockCenter(clockStyle: ClockStyle) {
 @Preview(showBackground = true)
 @Composable
 fun ClockPreview() {
-    // ShowTimePickerDialog(isDialogOpen = mutableStateOf(true), onTimeSelected ={} )
+
     ShowCustomDialog(mutableStateOf(true), {})
-//    TimePickerCustomizable() {
-//
-//     }
-    // Clock(modifier = Modifier.fillMaxSize())
+
 }
 
 fun main() {
