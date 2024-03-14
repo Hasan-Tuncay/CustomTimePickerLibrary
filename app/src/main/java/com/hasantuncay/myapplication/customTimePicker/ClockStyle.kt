@@ -21,7 +21,8 @@ data class ClockShapes(
     var centerPointRadius: Float = 3F,
     var handPointDotRadius: Float = 5f,
     var handPointCircleRadius: Float = 25F,
-    var handWwidth:Float=5F
+    var handWwidth:Float=5F,
+    var separatorDotRadius: Float=9f
 
 )
 
@@ -40,6 +41,7 @@ data class HeaderColors(
     var headeUnselectedColor: Color = headerUnselected,
     var headerSelectedColor: Color = headerSelected,
     var headerAmPmFontColor:Color=headerAmPmFont
+
 
 )
 

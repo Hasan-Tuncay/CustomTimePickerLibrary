@@ -14,7 +14,7 @@ val headerAmPmFont=Color(0xFF8C8C8C)
 val headerUnselected =Color(0xFF8C8C8C)
 
 val headerSeparator = Color(0xFF8C8C8C)
-
+val headerAmPm = Color(0xFF8C8C8C)
 val bodyBackground = Color(0xFFF2F2F2)
 
 val amPmUnSelected= Color(0xFFFFFFFF)

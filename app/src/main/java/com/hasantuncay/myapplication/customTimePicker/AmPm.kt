@@ -1,6 +1,6 @@
 package com.hasantuncay.myapplication.customTimePicker
 
-enum class AmPm (  type : String){
+enum class AmPm ( val  type : String){
     AM("AM"),
     PM("PM")
 }
